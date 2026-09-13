@@ -258,6 +258,15 @@ jobs:
 
           # Replace the pre-meal toolbar action with a decorative, non-interactive unicorn.
           git apply --directory=Loop -v ./CustomPatches/decorative-unicorn-toolbar.patch
+
+          # Replace every generated Loop Home Screen icon size with the pastel unicorn.
+          APP_ICON_DIR="OverrideAssetsLoop.xcassets/AppIcon.appiconset"
+          for icon_path in "$APP_ICON_DIR"/*.png; do
+            icon_size=$(basename "$icon_path" .png)
+            if [[ "$icon_size" =~ ^[0-9]+$ ]]; then
+              sips -z "$icon_size" "$icon_size" CustomAssets/unicorn-app-icon.png --out "$icon_path" >/dev/null
+            fi
+          done
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
         run: |
