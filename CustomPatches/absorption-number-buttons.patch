@@ -1,7 +1,8 @@
 diff --git a/LoopKitUI/CarbKit/FoodTypeRow.swift b/LoopKitUI/CarbKit/FoodTypeRow.swift
+index dd91079b..13bed949 100644
 --- a/LoopKitUI/CarbKit/FoodTypeRow.swift
 +++ b/LoopKitUI/CarbKit/FoodTypeRow.swift
-@@ -18,6 +18,9 @@ public struct FoodTypeRow: View {
+@@ -21,6 +21,9 @@ public struct FoodTypeRow: View {
      private var orderedAbsorptionTimes: [TimeInterval] {
          [defaultAbsorptionTimes.fast, defaultAbsorptionTimes.medium, defaultAbsorptionTimes.slow]
      }
@@ -11,7 +12,7 @@ diff --git a/LoopKitUI/CarbKit/FoodTypeRow.swift b/LoopKitUI/CarbKit/FoodTypeRow
      
      private let emojiShortcuts = FoodEmojiShortcut.all
      
-@@ -48,7 +51,8 @@ public struct FoodTypeRow: View {
+@@ -60,7 +63,8 @@ public struct FoodTypeRow: View {
                          let isSelected = index == selectedEmojiIndex
                          let option = emojiShortcuts[index]
                          Text(option.emoji)
@@ -21,7 +22,7 @@ diff --git a/LoopKitUI/CarbKit/FoodTypeRow.swift b/LoopKitUI/CarbKit/FoodTypeRow
                              .frame(width: 40, height: 40)
                              .background(isSelected ? Color.gray.opacity(0.2) : Color.clear)
                              .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-@@ -61,7 +65,7 @@ public struct FoodTypeRow: View {
+@@ -71,7 +75,7 @@ public struct FoodTypeRow: View {
                                  default:
                                      selectedDefaultAbsorptionTimeEmoji = option.emoji
                                      selectedEmojiIndex = index
@@ -30,7 +31,7 @@ diff --git a/LoopKitUI/CarbKit/FoodTypeRow.swift b/LoopKitUI/CarbKit/FoodTypeRow
                                  }
                              }
                      }
-@@ -89,6 +93,7 @@ fileprivate enum FoodEmojiShortcut {
+@@ -111,6 +115,7 @@ fileprivate enum FoodEmojiShortcut {
      case fast(emoji: String)
      case medium(emoji: String)
      case slow(emoji: String)
@@ -38,7 +39,7 @@ diff --git a/LoopKitUI/CarbKit/FoodTypeRow.swift b/LoopKitUI/CarbKit/FoodTypeRow
      case other
      
      var emoji: String {
-@@ -99,6 +104,8 @@ fileprivate enum FoodEmojiShortcut {
+@@ -121,15 +126,31 @@ fileprivate enum FoodEmojiShortcut {
              return emoji
          case .slow(emoji: let emoji):
              return emoji
@@ -47,8 +48,8 @@ diff --git a/LoopKitUI/CarbKit/FoodTypeRow.swift b/LoopKitUI/CarbKit/FoodTypeRow
          case .other:
              return "🍽️"
          }
-@@ -106,10 +113,26 @@ fileprivate enum FoodEmojiShortcut {
-     
+     }
++
 +    var color: Color {
 +        switch self {
 +        case .fast, .slow:
@@ -61,7 +62,7 @@ diff --git a/LoopKitUI/CarbKit/FoodTypeRow.swift b/LoopKitUI/CarbKit/FoodTypeRow
 +            return .primary
 +        }
 +    }
-+    
+     
      static let all: [FoodEmojiShortcut] = [
 -        .fast(emoji: "🍭"),
 -        .medium(emoji: "🌮"),
