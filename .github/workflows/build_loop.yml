@@ -244,11 +244,16 @@ jobs:
           git apply --directory=Loop -v ./CustomPatches/decorative-unicorn-toolbar.patch
 
           # Replace every generated Loop Home Screen icon size with the pastel unicorn.
+          # Flatten through JPEG first to prevent partial/black PNG rendering in TestFlight and iOS.
           APP_ICON_DIR="OverrideAssetsLoop.xcassets/AppIcon.appiconset"
+          FLAT_UNICORN="/tmp/unicorn-app-icon-flat.jpg"
+          sips -s format jpeg -s formatOptions best CustomAssets/unicorn-app-icon.png --out "$FLAT_UNICORN" >/dev/null
           for icon_path in "$APP_ICON_DIR"/*.png; do
             icon_size=$(basename "$icon_path" .png)
             if [[ "$icon_size" =~ ^[0-9]+$ ]]; then
-              sips -z "$icon_size" "$icon_size" CustomAssets/unicorn-app-icon.png --out "$icon_path" >/dev/null
+              temp_icon="/tmp/unicorn-icon-${icon_size}.png"
+              sips -s format png -z "$icon_size" "$icon_size" "$FLAT_UNICORN" --out "$temp_icon" >/dev/null
+              mv "$temp_icon" "$icon_path"
             fi
           done
       # Patch Fastlane Match to not print tables
