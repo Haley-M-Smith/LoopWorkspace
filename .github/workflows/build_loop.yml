@@ -255,6 +255,9 @@ jobs:
 
           # Replace the 2/3/5-hour food shortcuts with colored number buttons.
           git apply --directory=LoopKit -v ./CustomPatches/absorption-number-buttons.patch
+
+          # Replace the pre-meal toolbar action with a decorative, non-interactive unicorn.
+          git apply --directory=Loop -v ./CustomPatches/decorative-unicorn-toolbar.patch
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
         run: |
