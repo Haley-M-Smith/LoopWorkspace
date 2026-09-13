@@ -33,8 +33,8 @@ diff --git a/LoopKitUI/CarbKit/FoodTypeRow.swift b/LoopKitUI/CarbKit/FoodTypeRow
 -        .medium(emoji: "🌮"),
 -        .slow(emoji: "🍕"),
 +        .fast(emoji: "2"),
-+        .medium(emoji: "3"),
-+        .slow(emoji: "5"),
++        .medium(emoji: "4"),
++        .slow(emoji: "6"),
          .other
      ]
  }
