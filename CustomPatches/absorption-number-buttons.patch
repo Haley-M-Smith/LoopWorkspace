@@ -1,0 +1,40 @@
+diff --git a/LoopKitUI/CarbKit/FoodTypeRow.swift b/LoopKitUI/CarbKit/FoodTypeRow.swift
+--- a/LoopKitUI/CarbKit/FoodTypeRow.swift
++++ b/LoopKitUI/CarbKit/FoodTypeRow.swift
+@@ -48,7 +48,8 @@ public struct FoodTypeRow: View {
+                         let isSelected = index == selectedEmojiIndex
+                         let option = emojiShortcuts[index]
+                         Text(option.emoji)
+-                            .font(.title3)
++                            .font(.system(size: 22, weight: .bold))
++                            .foregroundColor(option.color)
+                             .frame(width: 40, height: 40)
+                             .background(isSelected ? Color.gray.opacity(0.2) : Color.clear)
+                             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+@@ -107,10 +108,23 @@ fileprivate enum FoodEmojiShortcut {
+         }
+     }
+     
++    var color: Color {
++        switch self {
++        case .fast:
++            return Color(red: 1.0, green: 0.72, blue: 0.86)
++        case .medium:
++            return Color(red: 0.72, green: 0.50, blue: 0.93)
++        case .slow:
++            return .white
++        case .other:
++            return .primary
++        }
++    }
++    
+     static let all: [FoodEmojiShortcut] = [
+-        .fast(emoji: "🍭"),
+-        .medium(emoji: "🌮"),
+-        .slow(emoji: "🍕"),
++        .fast(emoji: "2"),
++        .medium(emoji: "3"),
++        .slow(emoji: "5"),
+         .other
+     ]
+ }
