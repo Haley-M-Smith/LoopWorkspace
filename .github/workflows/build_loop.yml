@@ -218,22 +218,6 @@ jobs:
           future_carbs_4h \
           override_sens \
           now_line \
-          2hlollipop \
-          meal_days \
-          profiles \
-          basal_lock \
-          negative_insulin
-
-          # the final customization listed above CANNOT have a continuation character
-          # more customizations can be pasted after this line
-          # The lines below add the customizations listed using the CustomizationSelect script
-          # The "\" is a continuation character 
-          #   the line following a "\" should not be blank
-          /bin/bash -c "$(curl -fsSL \
-          https://raw.githubusercontent.com/loopandlearn/lnl-scripts/main/CustomizationSelect.sh)" \
-          future_carbs_4h \
-          override_sens \
-          now_line \
           lnl_icon \
           watch_title \
           2hlollipop \
@@ -246,8 +230,32 @@ jobs:
 
           # the final customization listed above CANNOT have a continuation character
           # more customizations can be pasted after this line
+          # Set the actual fast/medium/slow absorption presets to 2, 4, and 6 hours.
+          # The existing 2hlollipop customization sets fast to 2 hours.
+          sed -i '' 's/medium: \.hours(3), slow: \.hours(5)/medium: .hours(4), slow: .hours(6)/' Loop/LoopCore/LoopCoreConstants.swift
+
           # Fox in the Loop House Food Emoji update. Edit LoopKit: LoopKitUI\CarbKit\FoodEmojiDataSource.swift
            curl https://github.com/Nightfoxy-org/LoopKit/commit/32625ba43aebc493a3f934774b5dea552d891363.patch | git apply -v --directory=LoopKit
+
+          # Replace the 2/3/5-hour food shortcuts with colored number buttons.
+          git apply --directory=LoopKit -v ./CustomPatches/absorption-number-buttons.patch
+
+          # Replace the pre-meal toolbar action with a decorative, non-interactive unicorn.
+          git apply --directory=Loop -v ./CustomPatches/decorative-unicorn-toolbar.patch
+
+          # Replace every generated Loop Home Screen icon size with the pastel unicorn.
+          # Flatten through JPEG first to prevent partial/black PNG rendering in TestFlight and iOS.
+          APP_ICON_DIR="OverrideAssetsLoop.xcassets/AppIcon.appiconset"
+          FLAT_UNICORN="/tmp/unicorn-app-icon-flat.jpg"
+          sips -s format jpeg -s formatOptions best CustomAssets/unicorn-app-icon.png --out "$FLAT_UNICORN" >/dev/null
+          for icon_path in "$APP_ICON_DIR"/*.png; do
+            icon_size=$(basename "$icon_path" .png)
+            if [[ "$icon_size" =~ ^[0-9]+$ ]]; then
+              temp_icon="/tmp/unicorn-icon-${icon_size}.png"
+              sips -s format png -z "$icon_size" "$icon_size" "$FLAT_UNICORN" --out "$temp_icon" >/dev/null
+              mv "$temp_icon" "$icon_path"
+            fi
+          done
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
         run: |

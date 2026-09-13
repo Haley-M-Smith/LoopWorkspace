@@ -1,0 +1,32 @@
+diff --git a/Loop/View Controllers/StatusTableViewController.swift b/Loop/View Controllers/StatusTableViewController.swift
+--- a/Loop/View Controllers/StatusTableViewController.swift
++++ b/Loop/View Controllers/StatusTableViewController.swift
+@@ -1445,18 +1445,14 @@ final class StatusTableViewController: LoopChartsTableViewController {
+-    private func createPreMealButtonItem(selected: Bool, isEnabled: Bool) -> UIBarButtonItem {
+-        let item = UIBarButtonItem(image: UIImage.preMealImage(selected: selected), style: .plain, target: self, action: #selector(premealButtonTapped(_:)))
+-        item.accessibilityLabel = NSLocalizedString("Pre-Meal Targets", comment: "The label of the pre-meal mode toggle button")
++    private func createPreMealButtonItem(selected _: Bool, isEnabled _: Bool) -> UIBarButtonItem {
++        let unicornLabel = UILabel(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
++        unicornLabel.text = "🦄"
++        unicornLabel.font = .systemFont(ofSize: 30)
++        unicornLabel.textAlignment = .center
++        unicornLabel.isUserInteractionEnabled = false
++        unicornLabel.isAccessibilityElement = true
++        unicornLabel.accessibilityLabel = NSLocalizedString("Decorative unicorn", comment: "Accessibility label for the decorative unicorn in the status toolbar")
++        unicornLabel.accessibilityTraits = .image
+ 
+-        if selected {
+-            item.accessibilityTraits.insert(.selected)
+-            item.accessibilityHint = NSLocalizedString("Disables", comment: "The action hint of the workout mode toggle button when enabled")
+-        } else {
+-            item.accessibilityHint = NSLocalizedString("Enables", comment: "The action hint of the workout mode toggle button when disabled")
+-        }
+-
+-        item.tintColor = UIColor.carbTintColor
+-        item.isEnabled = isEnabled
+-
+-        return item
++        return UIBarButtonItem(customView: unicornLabel)
+     }
+     
+     private func createWorkoutButtonItem(selected: Bool, isEnabled: Bool) -> UIBarButtonItem {
