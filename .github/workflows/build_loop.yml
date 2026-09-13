@@ -246,6 +246,10 @@ jobs:
 
           # the final customization listed above CANNOT have a continuation character
           # more customizations can be pasted after this line
+          # Set the actual fast/medium/slow absorption presets to 2, 4, and 6 hours.
+          # The existing 2hlollipop customization sets fast to 2 hours.
+          sed -i '' 's/medium: \.hours(3), slow: \.hours(5)/medium: .hours(4), slow: .hours(6)/' Loop/LoopCore/LoopCoreConstants.swift
+
           # Fox in the Loop House Food Emoji update. Edit LoopKit: LoopKitUI\CarbKit\FoodEmojiDataSource.swift
            curl https://github.com/Nightfoxy-org/LoopKit/commit/32625ba43aebc493a3f934774b5dea552d891363.patch | git apply -v --directory=LoopKit
 
