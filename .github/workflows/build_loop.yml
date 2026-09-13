@@ -248,6 +248,9 @@ jobs:
           # more customizations can be pasted after this line
           # Fox in the Loop House Food Emoji update. Edit LoopKit: LoopKitUI\CarbKit\FoodEmojiDataSource.swift
            curl https://github.com/Nightfoxy-org/LoopKit/commit/32625ba43aebc493a3f934774b5dea552d891363.patch | git apply -v --directory=LoopKit
+
+          # Replace the 2/3/5-hour food shortcuts with colored number buttons.
+          git apply --directory=LoopKit -v ./CustomPatches/absorption-number-buttons.patch
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
         run: |
