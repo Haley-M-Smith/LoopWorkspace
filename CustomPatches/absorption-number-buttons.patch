@@ -49,28 +49,25 @@ diff --git a/LoopKitUI/CarbKit/FoodTypeRow.swift b/LoopKitUI/CarbKit/FoodTypeRow
          }
 @@ -106,10 +113,26 @@ fileprivate enum FoodEmojiShortcut {
      
-     var color: Color {
-         switch self {
--        case .fast:
++    var color: Color {
++        switch self {
 +        case .fast, .slow:
 +            return .white
 +        case .medium:
-             return Color(red: 1.0, green: 0.72, blue: 0.86)
--        case .medium:
++            return Color(red: 1.0, green: 0.72, blue: 0.86)
 +        case .extraSlow:
-             return Color(red: 0.72, green: 0.50, blue: 0.93)
--        case .slow:
--            return .white
-         case .other:
-             return .primary
-         }
-     }
-     
++            return Color(red: 0.72, green: 0.50, blue: 0.93)
++        case .other:
++            return .primary
++        }
++    }
++    
      static let all: [FoodEmojiShortcut] = [
--        .fast(emoji: "2"),
+-        .fast(emoji: "🍭"),
+-        .medium(emoji: "🌮"),
+-        .slow(emoji: "🍕"),
 +        .fast(emoji: "3"),
-         .medium(emoji: "4"),
--        .slow(emoji: "6"),
++        .medium(emoji: "4"),
 +        .slow(emoji: "5"),
 +        .extraSlow(emoji: "6"),
          .other
