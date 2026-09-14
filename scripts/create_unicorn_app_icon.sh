@@ -1,118 +1,130 @@
 #!/bin/bash
 set -euo pipefail
 
+# Generate the MAIN LOOP app icon from Apple's standard unicorn emoji.
+# The emoji is centered with comfortable padding on a baby-pink background.
+# Every filename and pixel size is read directly from Loop's AppIcon Contents.json.
+
 ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
 ICON_DIR="$ROOT/OverrideAssetsLoop.xcassets/AppIcon.appiconset"
 CONTENTS="$ICON_DIR/Contents.json"
-MASTER="${RUNNER_TEMP:-/tmp}/loop-unicorn-emoji-1024.png"
-SWIFT_FILE="${RUNNER_TEMP:-/tmp}/make-loop-unicorn-emoji.swift"
+MASTER_PNG="$ICON_DIR/Icon.png"
 
-if [ ! -d "$ICON_DIR" ]; then
-  echo "::error::Loop AppIcon directory not found: $ICON_DIR"
-  exit 1
-fi
 if [ ! -f "$CONTENTS" ]; then
-  echo "::error::Loop AppIcon Contents.json not found: $CONTENTS"
+  echo "::error::Main Loop AppIcon catalog not found at $CONTENTS"
   exit 1
 fi
 
-cat > "$SWIFT_FILE" <<'SWIFT'
-import AppKit
+# Use macOS CoreText so this is the regular Apple unicorn emoji, not custom artwork.
+swift - "$MASTER_PNG" <<'SWIFT'
+import CoreGraphics
+import CoreText
 import Foundation
+import ImageIO
+import UniformTypeIdentifiers
 
-let size = 1024
 let output = CommandLine.arguments[1]
-
-guard let bitmap = NSBitmapImageRep(
-    bitmapDataPlanes: nil,
-    pixelsWide: size,
-    pixelsHigh: size,
-    bitsPerSample: 8,
-    samplesPerPixel: 3,
-    hasAlpha: false,
-    isPlanar: false,
-    colorSpaceName: .deviceRGB,
+let pixels = 1024
+let colorSpace = CGColorSpaceCreateDeviceRGB()
+let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+guard let context = CGContext(
+    data: nil,
+    width: pixels,
+    height: pixels,
+    bitsPerComponent: 8,
     bytesPerRow: 0,
-    bitsPerPixel: 24
-) else { fatalError("Could not create bitmap") }
-
-guard let ctx = NSGraphicsContext(bitmapImageRep: bitmap) else {
-    fatalError("Could not create graphics context")
+    space: colorSpace,
+    bitmapInfo: bitmapInfo.rawValue
+) else {
+    fatalError("Could not create icon drawing context")
 }
 
-NSGraphicsContext.saveGraphicsState()
-NSGraphicsContext.current = ctx
+// Baby-pink background.
+context.setFillColor(CGColor(red: 250.0/255.0, green: 218.0/255.0, blue: 221.0/255.0, alpha: 1))
+context.fill(CGRect(x: 0, y: 0, width: pixels, height: pixels))
 
-// Baby-pink background, fully opaque for App Store/TestFlight compatibility.
-NSColor(calibratedRed: 1.0, green: 0.84, blue: 0.91, alpha: 1.0).setFill()
-NSBezierPath(rect: NSRect(x: 0, y: 0, width: size, height: size)).fill()
+let font = CTFontCreateWithName("AppleColorEmoji" as CFString, 650, nil)
+let attributes = [kCTFontAttributeName: font] as CFDictionary
+let text = CFAttributedStringCreate(nil, "🦄" as CFString, attributes)!
+let line = CTLineCreateWithAttributedString(text)
+let bounds = CTLineGetBoundsWithOptions(line, [.useGlyphPathBounds, .excludeTypographicLeading])
 
-// Standard Apple unicorn emoji with generous margins so iOS cannot crop it.
-let emoji = "🦄" as NSString
-let font = NSFont(name: "Apple Color Emoji", size: 560) ?? NSFont.systemFont(ofSize: 560)
-let attrs: [NSAttributedString.Key: Any] = [.font: font]
-let bounds = emoji.size(withAttributes: attrs)
-let origin = NSPoint(
-    x: (CGFloat(size) - bounds.width) / 2.0,
-    y: (CGFloat(size) - bounds.height) / 2.0 - 8.0
-)
-emoji.draw(at: origin, withAttributes: attrs)
+// Center the complete emoji. Correcting for bounds.minX/minY prevents clipping.
+let x = (CGFloat(pixels) - bounds.width) / 2 - bounds.minX
+let y = (CGFloat(pixels) - bounds.height) / 2 - bounds.minY
+context.textPosition = CGPoint(x: x, y: y)
+CTLineDraw(line, context)
 
-ctx.flushGraphics()
-NSGraphicsContext.restoreGraphicsState()
-
-guard let png = bitmap.representation(using: .png, properties: [:]) else {
-    fatalError("Could not encode PNG")
+guard let image = context.makeImage(),
+      let destination = CGImageDestinationCreateWithURL(
+        URL(fileURLWithPath: output) as CFURL,
+        UTType.png.identifier as CFString,
+        1,
+        nil
+      ) else {
+    fatalError("Could not create PNG output")
 }
-try png.write(to: URL(fileURLWithPath: output))
+CGImageDestinationAddImage(destination, image, nil)
+guard CGImageDestinationFinalize(destination) else {
+    fatalError("Could not save PNG output")
+}
 SWIFT
 
-swift "$SWIFT_FILE" "$MASTER"
+# Generate every exact image declared by this AppIcon catalog.
+python3 - "$CONTENTS" "$ICON_DIR" "$MASTER_PNG" <<'PY'
+import json
+import pathlib
+import subprocess
+import sys
 
-# Read the exact filenames and required pixel sizes from the asset catalog that
-# Xcode will compile. This avoids relying on guessed icon filenames.
-python3 - "$CONTENTS" > "${RUNNER_TEMP:-/tmp}/loop-icon-map.txt" <<'PY'
-import json, sys
-p = sys.argv[1]
-with open(p) as f:
-    data = json.load(f)
-for image in data.get("images", []):
-    filename = image.get("filename")
-    size = image.get("size")
-    scale = image.get("scale", "1x")
-    if not filename or not size:
-        continue
-    points = float(size.split("x")[0])
-    multiplier = float(scale.rstrip("x"))
-    pixels = round(points * multiplier)
-    print(f"{filename}|{pixels}")
-PY
-
-replaced=0
-while IFS='|' read -r filename pixels; do
-  [ -z "$filename" ] && continue
-  target="$ICON_DIR/$filename"
-  temp="${RUNNER_TEMP:-/tmp}/loop-unicorn-${replaced}.png"
-  echo "UNICORN ICON: $filename -> ${pixels}x${pixels}"
-  sips -s format png -z "$pixels" "$pixels" "$MASTER" --out "$temp" >/dev/null
-  mv "$temp" "$target"
-  replaced=$((replaced + 1))
-done < "${RUNNER_TEMP:-/tmp}/loop-icon-map.txt"
-
-if [ "$replaced" -lt 8 ]; then
-  echo "::error::Only replaced $replaced app icon files; refusing to build."
-  exit 1
-fi
-
-# Verify every filename declared by Contents.json exists after replacement.
-python3 - "$CONTENTS" "$ICON_DIR" <<'PY'
-import json, pathlib, sys
 contents = pathlib.Path(sys.argv[1])
 icon_dir = pathlib.Path(sys.argv[2])
+master = pathlib.Path(sys.argv[3])
 data = json.loads(contents.read_text())
-missing = [i["filename"] for i in data.get("images", []) if i.get("filename") and not (icon_dir / i["filename"]).exists()]
-if missing:
-    raise SystemExit("Missing generated icons: " + ", ".join(missing))
-PY
 
-echo "SUCCESS: generated and installed the full standard unicorn emoji into $replaced MAIN LOOP app-icon files."
+for image in data.get("images", []):
+    filename = image.get("filename")
+    if not filename:
+        continue
+
+    size = float(image["size"].split("x", 1)[0])
+    scale = int(image.get("scale", "1x").rstrip("x"))
+    pixels = round(size * scale)
+    destination = icon_dir / filename
+
+    if destination == master and pixels == 1024:
+        continue
+
+    temporary = destination.with_suffix(".generated.png")
+    subprocess.run(
+        ["sips", "-z", str(pixels), str(pixels), str(master), "--out", str(temporary)],
+        check=True,
+        stdout=subprocess.DEVNULL,
+    )
+    temporary.replace(destination)
+
+# Fail before archiving if any catalog entry is missing or has the wrong dimensions.
+errors = []
+for image in data.get("images", []):
+    filename = image.get("filename")
+    if not filename:
+        continue
+
+    expected = round(float(image["size"].split("x", 1)[0]) * int(image.get("scale", "1x").rstrip("x")))
+    path = icon_dir / filename
+    if not path.exists():
+        errors.append(f"{filename}: missing")
+        continue
+
+    info = subprocess.check_output(
+        ["sips", "-g", "pixelWidth", "-g", "pixelHeight", str(path)],
+        text=True,
+    )
+    if f"pixelWidth: {expected}" not in info or f"pixelHeight: {expected}" not in info:
+        errors.append(f"{filename}: expected {expected}x{expected}")
+
+if errors:
+    raise SystemExit("Invalid main Loop app icons: " + "; ".join(errors))
+
+print("SUCCESS: Main Loop icon is Apple's standard unicorn emoji on baby pink.")
+PY
