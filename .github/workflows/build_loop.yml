@@ -135,53 +135,10 @@ jobs:
           git apply --directory=LoopKit -v ./CustomPatches/absorption-number-buttons.patch
           git apply --directory=Loop -v ./CustomPatches/decorative-unicorn-toolbar.patch
 
-          # MAIN LOOP HOME-SCREEN ICON FIX
-          # Use the verified full unicorn image committed below, not the old cropped PNG.
-          APP_ICON_DIR="OverrideAssetsLoop.xcassets/AppIcon.appiconset"
-          SOURCE_ICON="CustomAssets/unicorn-app-icon.jpg"
-          FLAT_UNICORN="/tmp/unicorn-app-icon-flat.jpg"
-
-          if [ ! -f "$SOURCE_ICON" ]; then
-            echo "::error::Unicorn source icon missing: $SOURCE_ICON"
-            exit 1
-          fi
-          if [ ! -f "$APP_ICON_DIR/Contents.json" ]; then
-            echo "::error::Loop AppIcon Contents.json missing"
-            exit 1
-          fi
-
-          sips -s format jpeg -s formatOptions best "$SOURCE_ICON" --out "$FLAT_UNICORN" >/dev/null
-
-          python3 - "$APP_ICON_DIR/Contents.json" > /tmp/loop-icon-map.txt <<'PY'
-          import json, sys
-          data = json.load(open(sys.argv[1]))
-          for image in data.get('images', []):
-              filename = image.get('filename')
-              size = image.get('size')
-              scale = image.get('scale', '1x')
-              if not filename or not size:
-                  continue
-              points = float(size.split('x')[0])
-              multiplier = float(scale.rstrip('x'))
-              pixels = round(points * multiplier)
-              print(f"{filename}|{pixels}")
-          PY
-
-          replaced=0
-          while IFS='|' read -r filename pixels; do
-            target="$APP_ICON_DIR/$filename"
-            temp="/tmp/loop-icon-${replaced}.png"
-            echo "Replacing Loop app icon: $filename -> ${pixels}x${pixels}"
-            sips -s format png -z "$pixels" "$pixels" "$FLAT_UNICORN" --out "$temp" >/dev/null
-            mv "$temp" "$target"
-            replaced=$((replaced + 1))
-          done < /tmp/loop-icon-map.txt
-
-          if [ "$replaced" -lt 8 ]; then
-            echo "::error::Expected to replace many Loop app icons, but replaced only $replaced"
-            exit 1
-          fi
-          echo "SUCCESS: replaced $replaced MAIN LOOP app-icon files with the VERIFIED FULL unicorn image."
+          # Replace the MAIN LOOP iPhone home-screen icon LAST, after lnl_icon,
+          # with the full standard Apple unicorn emoji. The script reads the
+          # exact filenames from Contents.json, so every compiled icon is replaced.
+          bash ./scripts/create_unicorn_app_icon.sh
 
       - name: Patch Match Tables
         run: |
