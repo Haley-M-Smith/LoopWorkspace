@@ -136,11 +136,9 @@ jobs:
           git apply --directory=Loop -v ./CustomPatches/decorative-unicorn-toolbar.patch
 
           # MAIN LOOP HOME-SCREEN ICON FIX
-          # Previous code only replaced files whose BASENAME was a number, but the actual
-          # asset files are named icon_60pt@3x.png, Icon.png, etc. That meant ZERO icons
-          # were replaced. This version reads Contents.json and rewrites every file it names.
+          # Use the verified full unicorn image committed below, not the old cropped PNG.
           APP_ICON_DIR="OverrideAssetsLoop.xcassets/AppIcon.appiconset"
-          SOURCE_ICON="CustomAssets/unicorn-app-icon.png"
+          SOURCE_ICON="CustomAssets/unicorn-app-icon.jpg"
           FLAT_UNICORN="/tmp/unicorn-app-icon-flat.jpg"
 
           if [ ! -f "$SOURCE_ICON" ]; then
@@ -152,7 +150,6 @@ jobs:
             exit 1
           fi
 
-          # Flatten first to eliminate alpha/transparency issues.
           sips -s format jpeg -s formatOptions best "$SOURCE_ICON" --out "$FLAT_UNICORN" >/dev/null
 
           python3 - "$APP_ICON_DIR/Contents.json" > /tmp/loop-icon-map.txt <<'PY'
@@ -184,7 +181,7 @@ jobs:
             echo "::error::Expected to replace many Loop app icons, but replaced only $replaced"
             exit 1
           fi
-          echo "SUCCESS: replaced $replaced MAIN LOOP app-icon files with the unicorn image."
+          echo "SUCCESS: replaced $replaced MAIN LOOP app-icon files with the VERIFIED FULL unicorn image."
 
       - name: Patch Match Tables
         run: |
