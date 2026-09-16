@@ -2,11 +2,14 @@ name: 4. Build Loop Manual
 run-name: Build Loop Manual (${{ github.ref_name }})
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - custom/libre-next-dev
 
 env:
   GH_PAT: ${{ secrets.GH_PAT }}
   UPSTREAM_REPO: LoopKit/LoopWorkspace
-  UPSTREAM_BRANCH: ${{ github.ref_name }} # branch on upstream repository to sync from (replace with specific branch name if needed)
+  UPSTREAM_BRANCH: next-dev # Libre 3/3+ support is maintained in the official next-dev branch
   TARGET_BRANCH: ${{ github.ref_name }} # target branch on fork to be kept in sync
 
 jobs:
