@@ -1,0 +1,81 @@
+diff --git a/Loop/Views/StatusTableView.swift b/Loop/Views/StatusTableView.swift
+index 220e16e..12130b6 100644
+--- a/Loop/Views/StatusTableView.swift
++++ b/Loop/Views/StatusTableView.swift
+@@ -154,6 +154,14 @@ struct StatusTableView: View {
+             ) {
+                 viewController.presentBolusScreen()
+             }
++
++            ActionTab(
++                title: "Unicorn",
++                icon: "",
++                emoji: "🦄",
++                isEnabled: false,
++                tintColor: .clear
++            ) { }
+             
+             ActionTab(
+                 title: "Presets",
+@@ -180,6 +188,8 @@ struct ActionTab: Identifiable {
+     let id = UUID()
+     let title: String
+     let icon: String
++    var emoji: String? = nil
++    var isEnabled: Bool = true
+     let tintColor: UIColor
+     let action: () -> Void
+ }
+@@ -209,11 +219,15 @@ struct ActionTabBar: UIViewRepresentable {
+         uiView.isHidden = isHidden
+         context.coordinator.tabs = items
+         uiView.items = items.enumerated().map { idx, item in
+-            UITabBarItem(
++            let image = item.emoji.map { UIImage.emojiImage($0, height: 28) }
++                ?? UIImage(named: item.icon)?.scaledToFit(height: 28).withTintColor(item.tintColor, renderingMode: .alwaysOriginal)
++            let tabItem = UITabBarItem(
+                 title: item.title,
+-                image: UIImage(named: item.icon)?.scaledToFit(height: 28).withTintColor(item.tintColor, renderingMode: .alwaysOriginal),
++                image: image,
+                 tag: idx
+             )
++            tabItem.isEnabled = item.isEnabled
++            return tabItem
+         }
+     }
+ 
+@@ -224,6 +238,7 @@ struct ActionTabBar: UIViewRepresentable {
+ 
+         func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+             guard tabs.indices.contains(item.tag) else { return }
++            guard tabs[item.tag].isEnabled else { return }
+             tabs[item.tag].action()
+             DispatchQueue.main.async {
+                 tabBar.selectedItem = nil
+@@ -244,6 +259,26 @@ private extension UIImage {
+             draw(in: CGRect(origin: .zero, size: newSize))
+         }
+     }
++
++    static func emojiImage(_ emoji: String, height: CGFloat) -> UIImage {
++        let size = CGSize(width: height, height: height)
++        let renderer = UIGraphicsImageRenderer(size: size)
++        return renderer.image { _ in
++            let attributes: [NSAttributedString.Key: Any] = [
++                .font: UIFont(name: "AppleColorEmoji", size: height * 0.86) ?? UIFont.systemFont(ofSize: height * 0.86)
++            ]
++            let string = NSAttributedString(string: emoji, attributes: attributes)
++            let bounds = string.boundingRect(
++                with: size,
++                options: [.usesLineFragmentOrigin, .usesFontLeading],
++                context: nil
++            )
++            string.draw(at: CGPoint(
++                x: (size.width - bounds.width) / 2 - bounds.minX,
++                y: (size.height - bounds.height) / 2 - bounds.minY
++            ))
++        }.withRenderingMode(.alwaysOriginal)
++    }
+ }
+ 
+ @resultBuilder
