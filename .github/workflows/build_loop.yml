@@ -193,13 +193,22 @@ jobs:
           override_sens \
           now_line \
           lnl_icon \
-          watch_title \
           2hlollipop \
           meal_days \
-          profiles \
-          basal_lock \
-          negative_insulin \
-          remote_window \
+          basal_lock
+
+          # next-dev already uses the new Watch and Presets interfaces, so the
+          # former watch_title and profiles patches are no longer applicable.
+          PATCH_BRANCH=nextdev_negative_insulin_update /bin/bash -c "$(curl -fsSL \
+          https://raw.githubusercontent.com/loopandlearn/lnl-scripts/main/CustomizationSelect.sh)" \
+          negative_insulin
+
+          PATCH_BRANCH=nextdev_remote_window /bin/bash -c "$(curl -fsSL \
+          https://raw.githubusercontent.com/loopandlearn/lnl-scripts/main/CustomizationSelect.sh)" \
+          remote_window
+
+          PATCH_BRANCH=nextdev_xdrip_cgm /bin/bash -c "$(curl -fsSL \
+          https://raw.githubusercontent.com/loopandlearn/lnl-scripts/main/CustomizationSelect.sh)" \
           xdrip_cgm
 
           sed -i '' 's/medium: \.hours(3), slow: \.hours(5)/medium: .hours(4), slow: .hours(6)/' Loop/LoopCore/LoopCoreConstants.swift
