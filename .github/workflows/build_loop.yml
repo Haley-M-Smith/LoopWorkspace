@@ -164,7 +164,7 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
           FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
           FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
-          FASLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
 
       - name: Fastlane upload to TestFlight
@@ -173,8 +173,8 @@ jobs:
           TEAMID: ${{ secrets.TEAMID }}
           GH_PAT: ${{ secrets.GH_PAT }}
           FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
-          FASLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
-          FASLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
+          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
 
       - name: Upload build log, IPA and Symbol artifacts
