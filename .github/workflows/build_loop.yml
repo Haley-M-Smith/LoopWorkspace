@@ -180,32 +180,37 @@ jobs:
           submodules: recursive
           ref: ${{ env.TARGET_BRANCH }}
 
-      # Customize Loop: Download and apply patches
+      # Customize Loop: preserve Haley's pink/purple aesthetics and icons
       - name: Customize Loop
         run: |
-
-          # LoopWorkspace patches
-          # -applies any patches located in the LoopWorkspace/patches/ directory
           if $(ls ./patches/* &> /dev/null); then
-          git apply ./patches/* --allow-empty -v --whitespace=fix
+            git apply ./patches/* --allow-empty -v --whitespace=fix
           fi
 
-          # Submodule Loop patches:
-          # Template for customizing submodule Loop (changes Loop app name to "CustomLoop")
-          # Remove the "#" sign from the beginning of the line below to activate:
-          #curl https://github.com/loopnlearn/Loop/commit/d206432b024279ef710df462b20bd464cd9682d4.patch | git apply --directory=Loop -v --whitespace=fix
+          /bin/bash -c "$(curl -fsSL \
+          https://raw.githubusercontent.com/loopandlearn/lnl-scripts/main/CustomizationSelect.sh)" \
+          future_carbs_4h \
+          override_sens \
+          now_line \
+          lnl_icon \
+          watch_title \
+          2hlollipop \
+          meal_days \
+          profiles \
+          basal_lock \
+          negative_insulin \
+          remote_window \
+          xdrip_cgm
 
-          # Submodule LoopKit patches:
-          # General template for customizing submodule LoopKit 
-          # Copy url from a GitHub commit or pull request and insert below, and remove the "#" sign from the beginning of the line to activate:
-          #curl url_to_github_commit.patch | git apply --directory=LoopKit -v --whitespace=fix
+          sed -i '' 's/medium: \.hours(3), slow: \.hours(5)/medium: .hours(4), slow: .hours(6)/' Loop/LoopCore/LoopCoreConstants.swift
 
-          # Submodule xxxxx patches:
+          curl https://github.com/Nightfoxy-org/LoopKit/commit/32625ba43aebc493a3f934774b5dea552d891363.patch | git apply -v --directory=LoopKit
+          git apply --directory=LoopKit -v ./CustomPatches/absorption-number-buttons.patch
+          git apply --directory=LoopKit -v ./CustomPatches/carb-effect-layer-contrast.patch
+          git apply --directory=Loop -v ./CustomPatches/decorative-unicorn-toolbar.patch
 
-          # Add patches for customization of additional submodules by following the templates above, 
-          # and make sure to specify the submodule by setting "--directory=(submodule_name)".
-          # Several patches may be added per submodule.
-          # Adding comments (#) may be useful to easily tell the individual patches apart.
+          # Replace the main Loop home-screen icon last, after lnl_icon.
+          bash ./scripts/create_unicorn_app_icon.sh
 
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
