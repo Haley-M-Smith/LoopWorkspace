@@ -22,7 +22,8 @@ if [ ! -f "$CONTENTS" ]; then
 fi
 
 # Decode the exact unicorn artwork that was saved with this customization.
-base64 --decode "$SOURCE_B64" > "$SOURCE_JPG" 2>/dev/null || base64 -D "$SOURCE_B64" > "$SOURCE_JPG"
+# GitHub's macOS runner uses BSD base64 syntax.
+base64 -D -i "$SOURCE_B64" -o "$SOURCE_JPG"
 
 # Convert once to a square 1024 PNG, then create every size declared by Contents.json.
 sips -s format png -z 1024 1024 "$SOURCE_JPG" --out "$MASTER_PNG" >/dev/null
