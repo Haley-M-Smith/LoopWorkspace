@@ -67,13 +67,28 @@ jobs:
       - name: Sync upstream changes
         if: steps.workflow-permission.outputs.has_permission == 'true' && vars.SCHEDULED_SYNC != 'false' && github.repository_owner != 'LoopKit'
         id: sync
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.2
-        with:
-          target_sync_branch: ${{ env.TARGET_BRANCH }}
-          shallow_since: 6 months ago
-          target_repo_token: ${{ secrets.GH_PAT }}
-          upstream_sync_branch: ${{ env.UPSTREAM_BRANCH }}
-          upstream_sync_repo: ${{ env.UPSTREAM_REPO }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch --no-tags upstream "${UPSTREAM_BRANCH}"
+          if git merge-base --is-ancestor FETCH_HEAD HEAD; then
+            echo "has_new_commits=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Keep local workflow and customizations on conflicting lines.
+          # Other upstream changes are merged normally.
+          if ! git -c merge.conflictstyle=merge merge --no-edit -X ours FETCH_HEAD; then
+            git merge --abort || true
+            echo "::error::Upstream changes require manual review; main was not modified."
+            exit 1
+          fi
+          git push origin "HEAD:${TARGET_BRANCH}"
+          echo "has_new_commits=true" >> "$GITHUB_OUTPUT"
 
       - name: Check if this is the second time this day-of-week happens this month
         id: date-check
