@@ -137,17 +137,6 @@ jobs:
           future_carbs_4h \
           override_sens \
           now_line \
-          2hlollipop \
-          meal_days \
-          profiles \
-          basal_lock \
-          negative_insulin
-
-          /bin/bash -c "$(curl -fsSL \
-          https://raw.githubusercontent.com/loopandlearn/lnl-scripts/main/CustomizationSelect.sh)" \
-          future_carbs_4h \
-          override_sens \
-          now_line \
           watch_title \
           2hlollipop \
           meal_days \
