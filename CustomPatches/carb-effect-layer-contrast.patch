@@ -1,0 +1,113 @@
+diff --git a/LoopKitUI/Charts/CarbEffectChart.swift b/LoopKitUI/Charts/CarbEffectChart.swift
+index 1213696..89e6f74 100644
+--- a/LoopKitUI/Charts/CarbEffectChart.swift
++++ b/LoopKitUI/Charts/CarbEffectChart.swift
+@@ -74,27 +74,53 @@ extension CarbEffectChart {
+ 
+         let (xAxisLayer, yAxisLayer, innerFrame) = (coordsSpace.xAxisLayer, coordsSpace.yAxisLayer, coordsSpace.chartInnerFrame)
+ 
+-        let carbFillColor = colors.carbTint.withAlphaComponent(0.5)
+-        let carbBlendMode: CGBlendMode
+-        switch traitCollection.userInterfaceStyle {
+-        case .dark:
+-            carbBlendMode = .plusLighter
+-        case .light, .unspecified:
+-            carbBlendMode = .plusDarker
+-        @unknown default:
+-            carbBlendMode = .plusDarker
+-        }
++        // Keep predicted and observed absorption visually distinct even when
++        // their bars have the same height. Predicted absorption is the
++        // translucent baby-pink layer; observed absorption is the narrower, opaque
++        // dusty-pink layer drawn above it. A fine predicted edge is drawn last
++        // so matching bars remain distinguishable without changing chart data.
++        let predictedFillColor = UIColor(
++            red: 1.0,
++            green: 0.82,
++            blue: 0.91,
++            alpha: 0.55
++        )
++        let predictedEdgeColor = UIColor(
++            red: 1.0,
++            green: 0.82,
++            blue: 0.91,
++            alpha: 0.95
++        )
++        let observedFillColor = UIColor(
++            red: 0.60,
++            green: 0.42,
++            blue: 0.52,
++            alpha: 1.0
++        )
+ 
+         // Carb effect
+         let effectsLayer = ChartPointsFillsLayer(
+             xAxis: xAxisLayer.axis,
+             yAxis: yAxisLayer.axis,
+             fills: [
+-                ChartPointsFill(chartPoints: carbEffectPoints, fillColor: UIColor.secondaryLabel.withAlphaComponent(0.5)),
+-                ChartPointsFill(chartPoints: insulinCounteractionEffectPoints, fillColor: carbFillColor, blendMode: carbBlendMode)
++                ChartPointsFill(chartPoints: carbEffectPoints, fillColor: predictedFillColor),
++                ChartPointsFill(chartPoints: insulinCounteractionEffectPoints, fillColor: observedFillColor)
+             ]
+         )
+ 
++        let predictedEdgeModel = ChartLineModel(
++            chartPoints: carbEffectPoints,
++            lineColor: predictedEdgeColor,
++            lineWidth: 1,
++            animDuration: 0,
++            animDelay: 0
++        )
++        let predictedEdgeLayer = ChartPointsLineLayer(
++            xAxis: xAxisLayer.axis,
++            yAxis: yAxisLayer.axis,
++            lineModels: [predictedEdgeModel]
++        )
++
+         // Grid lines
+         let gridLayer = ChartGuideLinesForValuesLayer(
+             xAxis: xAxisLayer.axis,
+@@ -111,7 +137,7 @@ extension CarbEffectChart {
+             let viewFrame = CGRect(x: chart.contentView.bounds.minX, y: chartPointModel.screenLoc.y - width / 2, width: chart.contentView.bounds.size.width, height: width)
+ 
+             let v = UIView(frame: viewFrame)
+-            v.layer.backgroundColor = carbFillColor.cgColor
++            v.layer.backgroundColor = observedFillColor.cgColor
+             return v
+         })
+ 
+@@ -132,7 +158,8 @@ extension CarbEffectChart {
+             yAxisLayer,
+             zeroGuidelineLayer,
+             carbEffectChartCache?.highlightLayer,
+-            effectsLayer
++            effectsLayer,
++            predictedEdgeLayer
+         ]
+ 
+         return Chart(
+@@ -195,15 +222,20 @@ extension CarbEffectChart {
+         let zero = ChartAxisValueInt(0)
+ 
+         for effect in effects {
+-            let startX = ChartAxisValueDate(date: effect.startDate, formatter: dateFormatter)
+-            let endX = ChartAxisValueDate(date: effect.endDate, formatter: dateFormatter)
++            // Inset only the rendered observed bar. This leaves a slim edge of
++            // predicted absorption visible when both series have equal values.
++            let duration = effect.endDate.timeIntervalSince(effect.startDate)
++            let horizontalInset = min(30, duration * 0.08)
++            let startX = ChartAxisValueDate(date: effect.startDate.addingTimeInterval(horizontalInset), formatter: dateFormatter)
++            let endX = ChartAxisValueDate(date: effect.endDate.addingTimeInterval(-horizontalInset), formatter: dateFormatter)
++            let selectionX = ChartAxisValueDate(date: effect.endDate, formatter: dateFormatter)
+             let value = ChartAxisValueDoubleUnit(effect.quantity.doubleValue(for: unit), unitString: unitString, formatter: decimalFormatter)
+ 
+             guard value.scalar != 0 else {
+                 continue
+             }
+ 
+-            let valuePoint = ChartPoint(x: endX, y: value)
++            let valuePoint = ChartPoint(x: selectionX, y: value)
+ 
+             insulinCounteractionEffectPoints += [
+                 ChartPoint(x: startX, y: zero),
