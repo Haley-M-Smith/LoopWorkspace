@@ -3,13 +3,13 @@ run-name: Build Loop (${{ github.ref_name }})
 on:
   workflow_dispatch:
   schedule:
-    - cron: "33 7 * * 0"
+    - cron: "33 7 * * *"
 
 env:
   GH_PAT: ${{ secrets.GH_PAT }}
   UPSTREAM_REPO: LoopKit/LoopWorkspace
-  UPSTREAM_BRANCH: ${{ github.ref_name }}
-  TARGET_BRANCH: ${{ github.ref_name }}
+  UPSTREAM_BRANCH: main
+  TARGET_BRANCH: main
 
 jobs:
   check_status:
