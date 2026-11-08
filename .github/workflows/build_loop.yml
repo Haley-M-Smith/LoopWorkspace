@@ -132,7 +132,6 @@ jobs:
           future_carbs_4h \
           override_sens \
           now_line \
-          lnl_icon \
           watch_title \
           2hlollipop \
           meal_days \
@@ -144,10 +143,6 @@ jobs:
 
           curl https://github.com/Nightfoxy-org/LoopKit/commit/32625ba43aebc493a3f934774b5dea552d891363.patch | git apply -v --directory=LoopKit
 
-          # Replace the MAIN LOOP iPhone app icon last so lnl_icon cannot overwrite it.
-          # This draws Apple's standard unicorn emoji centered on baby pink and creates
-          # every exact pixel size required by OverrideAssetsLoop's AppIcon set.
-          bash ./scripts/create_unicorn_app_icon.sh
 
       - name: Patch Match Tables
         run: |
