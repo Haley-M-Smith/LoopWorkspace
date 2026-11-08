@@ -132,7 +132,6 @@ jobs:
           future_carbs_4h \
           override_sens \
           now_line \
-          lnl_icon \
           watch_title \
           2hlollipop \
           meal_days \
@@ -148,10 +147,6 @@ jobs:
           git apply --check --directory=LoopKit ./CustomPatches/carb-effect-layer-contrast.patch
           git apply --directory=LoopKit ./CustomPatches/carb-effect-layer-contrast.patch
 
-          # Replace the MAIN LOOP iPhone app icon last so lnl_icon cannot overwrite it.
-          # This draws Apple's standard unicorn emoji centered on baby pink and creates
-          # every exact pixel size required by OverrideAssetsLoop's AppIcon set.
-          bash ./scripts/create_unicorn_app_icon.sh
 
       - name: Patch Match Tables
         run: |
