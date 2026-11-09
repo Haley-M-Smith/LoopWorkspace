@@ -126,6 +126,17 @@ jobs:
           submodules: recursive
           ref: ${{ env.TARGET_BRANCH }}
 
+      - name: Apply saved visual customizations
+        run: |
+          set -euo pipefail
+          # UI-only patches. Fail rather than produce a build missing customizations.
+          git apply --check --directory=Loop ./CustomPatches/decorative-unicorn-toolbar.patch
+          git apply --directory=Loop ./CustomPatches/decorative-unicorn-toolbar.patch
+          git apply --check --directory=LoopKit ./CustomPatches/absorption-number-buttons.patch
+          git apply --directory=LoopKit ./CustomPatches/absorption-number-buttons.patch
+          git apply --check --directory=LoopKit ./CustomPatches/carb-effect-layer-contrast.patch
+          git apply --directory=LoopKit ./CustomPatches/carb-effect-layer-contrast.patch
+
       - name: Customize Loop
         run: |
           if $(ls ./patches/* &> /dev/null); then
