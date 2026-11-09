@@ -81,9 +81,9 @@ jobs:
             echo "has_new_commits=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # Keep local workflow and customizations on conflicting lines.
-          # Other upstream changes are merged normally.
-          if ! git -c merge.conflictstyle=merge merge --no-edit -X ours FETCH_HEAD; then
+          # Never silently favor outdated local code when upstream changes conflict.
+          # Stop and require review instead of producing an unverified insulin app.
+          if ! git -c merge.conflictstyle=merge merge --no-edit FETCH_HEAD; then
             git merge --abort || true
             echo "::error::Upstream changes require manual review; main was not modified."
             exit 1
