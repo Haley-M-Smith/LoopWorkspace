@@ -155,6 +155,7 @@ jobs:
           basal_lock \
           negative_insulin \
           remote_window \
+          remote_carb_edit \
           xdrip_cgm
 
           curl https://github.com/Nightfoxy-org/LoopKit/commit/32625ba43aebc493a3f934774b5dea552d891363.patch | git apply -v --directory=LoopKit
