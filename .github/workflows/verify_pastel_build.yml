@@ -1,0 +1,30 @@
+name: Verify Loop simulator build
+
+on:
+  pull_request:
+    branches: [next-dev-pink]
+
+permissions:
+  contents: read
+
+jobs:
+  simulator:
+    runs-on: xcode-27
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Select Xcode
+        run: sudo xcode-select --switch /Applications/Xcode_27.1.app/Contents/Developer
+      - name: Apply cosmetic patches
+        run: bash Scripts/apply_pastel_patches.sh
+      - name: Build and test in iOS Simulator
+        run: |
+          xcodebuild test \
+            -workspace LoopWorkspace.xcworkspace \
+            -scheme LoopWorkspace \
+            -destination 'platform=iOS Simulator,name=iPhone 17' \
+            -collect-test-diagnostics never \
+            CODE_SIGNING_ALLOWED=NO
