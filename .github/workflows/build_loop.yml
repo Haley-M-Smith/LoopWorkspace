@@ -190,6 +190,8 @@ jobs:
           git apply ./patches/* --allow-empty -v --whitespace=fix
           fi
 
+          bash Scripts/apply_pastel_patches.sh
+
           # Submodule Loop patches:
           # Template for customizing submodule Loop (changes Loop app name to "CustomLoop")
           # Remove the "#" sign from the beginning of the line below to activate:

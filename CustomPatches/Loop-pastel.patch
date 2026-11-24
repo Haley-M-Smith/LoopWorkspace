@@ -1,0 +1,69 @@
+diff --git a/Loop/View Controllers/StatusTableViewController.swift b/Loop/View Controllers/StatusTableViewController.swift
+index 9991db6..5aee725 100644
+--- a/Loop/View Controllers/StatusTableViewController.swift	
++++ b/Loop/View Controllers/StatusTableViewController.swift	
+@@ -628,9 +628,9 @@ final class StatusTableViewController: LoopChartsTableViewController {
+ 
+         // Show the larger of the value either before or after the current date
+         if let activeInsulin = loopManager.activeInsulin, let valueString = insulinFormatter.string(from: activeInsulin.quantity, includeUnit: false) {
+-            let valueAttributedString = NSMutableAttributedString(string: valueString, attributes: [.font: UIFont.systemFont(ofSize: 22, weight: .semibold), .foregroundColor: ChartColorPalette.primary.insulinTint])
++            let valueAttributedString = NSMutableAttributedString(string: valueString, attributes: [.font: UIFont.systemFont(ofSize: 22, weight: .semibold), .foregroundColor: ChartColorPalette.primary.pastelInsulinTint])
+             let spacer = NSAttributedString(string: "\u{00a0}")
+-            let unitAttributedString = NSMutableAttributedString(string: insulinFormatter.localizedUnitStringWithPlurality(forQuantity: activeInsulin.quantity, avoidLineBreaking: true), attributes: [.font: UIFont.systemFont(ofSize: 15, weight: .regular), .foregroundColor: ChartColorPalette.primary.insulinTint])
++            let unitAttributedString = NSMutableAttributedString(string: insulinFormatter.localizedUnitStringWithPlurality(forQuantity: activeInsulin.quantity, avoidLineBreaking: true), attributes: [.font: UIFont.systemFont(ofSize: 15, weight: .regular), .foregroundColor: ChartColorPalette.primary.pastelInsulinTint])
+             
+             valueAttributedString.append(spacer)
+             valueAttributedString.append(unitAttributedString)
+@@ -653,18 +653,18 @@ final class StatusTableViewController: LoopChartsTableViewController {
+             charts.setCOBValues(cobValues)
+         }
+         if let index = charts.cob.cobPoints.closestIndex(priorTo: Date()) {
+-            let valueAttributedString = NSMutableAttributedString(string: String(describing: charts.cob.cobPoints[index].y.copy), attributes: [.font: UIFont.systemFont(ofSize: 22, weight: .semibold), .foregroundColor: ChartColorPalette.primary.carbTint])
++            let valueAttributedString = NSMutableAttributedString(string: String(describing: charts.cob.cobPoints[index].y.copy), attributes: [.font: UIFont.systemFont(ofSize: 22, weight: .semibold), .foregroundColor: ChartColorPalette.primary.pastelCarbTint])
+             let spacer = NSAttributedString(string: "\u{00a0}")
+-            let unitAttributedString =  NSAttributedString(string: String(describing: charts.cob.cobPoints[index].y).replacingOccurrences(of: String(describing: charts.cob.cobPoints[index].y.copy), with: "").trimmingCharacters(in: .whitespacesAndNewlines), attributes: [.font: UIFont.systemFont(ofSize: 15, weight: .regular), .foregroundColor: ChartColorPalette.primary.carbTint])
++            let unitAttributedString =  NSAttributedString(string: String(describing: charts.cob.cobPoints[index].y).replacingOccurrences(of: String(describing: charts.cob.cobPoints[index].y.copy), with: "").trimmingCharacters(in: .whitespacesAndNewlines), attributes: [.font: UIFont.systemFont(ofSize: 15, weight: .regular), .foregroundColor: ChartColorPalette.primary.pastelCarbTint])
+             
+             valueAttributedString.append(spacer)
+             valueAttributedString.append(unitAttributedString)
+             
+             self.currentCOBDescription = valueAttributedString
+         } else if let carbsOnBoard = carbsOnBoard, let valueString = carbFormatter.string(from: carbsOnBoard, includeUnit: false) {
+-            let valueAttributedString = NSMutableAttributedString(string: valueString, attributes: [.font: UIFont.systemFont(ofSize: 22, weight: .semibold), .foregroundColor: ChartColorPalette.primary.carbTint])
++            let valueAttributedString = NSMutableAttributedString(string: valueString, attributes: [.font: UIFont.systemFont(ofSize: 22, weight: .semibold), .foregroundColor: ChartColorPalette.primary.pastelCarbTint])
+             let spacer = NSAttributedString(string: "\u{00a0}")
+-            let unitAttributedString = NSAttributedString(string: carbFormatter.localizedUnitStringWithPlurality(forQuantity: carbsOnBoard, avoidLineBreaking: true), attributes: [.font: UIFont.systemFont(ofSize: 15, weight: .regular), .foregroundColor: ChartColorPalette.primary.carbTint])
++            let unitAttributedString = NSAttributedString(string: carbFormatter.localizedUnitStringWithPlurality(forQuantity: carbsOnBoard, avoidLineBreaking: true), attributes: [.font: UIFont.systemFont(ofSize: 15, weight: .regular), .foregroundColor: ChartColorPalette.primary.pastelCarbTint])
+             
+             valueAttributedString.append(spacer)
+             valueAttributedString.append(unitAttributedString)
+@@ -1089,14 +1089,14 @@ final class StatusTableViewController: LoopChartsTableViewController {
+                     return self?.statusCharts.iobChart(withFrame: frame, highlightLabelOffsetY: cell.supplementalChartContentView?.bounds.height ?? 0)?.view
+                 })
+                 cell.setTitleLabelText(label: NSLocalizedString("Active Insulin", comment: "The title of the Insulin On-Board graph"))
+-                cell.setTitleTextColor(color: ChartColorPalette.primary.insulinTint)
++                cell.setTitleTextColor(color: ChartColorPalette.primary.pastelInsulinTint)
+                 cell.setFooterView(content: iobFooterViewContent)
+             case .cob:
+                 cell.setChartGenerator(generator: { [weak self] (frame) in
+                     return self?.statusCharts.cobChart(withFrame: frame)?.view
+                 })
+                 cell.setTitleLabelText(label: NSLocalizedString("Active Carbohydrates", comment: "The title of the Carbs On-Board graph"))
+-                cell.setTitleTextColor(color: ChartColorPalette.primary.carbTint)
++                cell.setTitleTextColor(color: ChartColorPalette.primary.pastelCarbTint)
+                 clearChartFooter(cell)
+             }
+ 
+diff --git a/Loop/Views/StatusTableView.swift b/Loop/Views/StatusTableView.swift
+index a09e8b9..309cda7 100644
+--- a/Loop/Views/StatusTableView.swift
++++ b/Loop/Views/StatusTableView.swift
+@@ -141,7 +141,7 @@ struct StatusTableView: View {
+             ActionTab(
+                 title: "Add Carbs",
+                 icon: "carbs",
+-                tintColor: .carbTintColor
++                tintColor: ChartColorPalette.primary.pastelCarbTint
+             ) {
+                 viewController.userTappedAddCarbs()
+             }

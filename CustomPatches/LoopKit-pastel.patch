@@ -1,0 +1,109 @@
+diff --git a/LoopKitUI/ChartColorPalette.swift b/LoopKitUI/ChartColorPalette.swift
+index 51dff4c..ff0c558 100644
+--- a/LoopKitUI/ChartColorPalette.swift
++++ b/LoopKitUI/ChartColorPalette.swift
+@@ -20,6 +20,24 @@ public struct ChartColorPalette {
+     /// The chart's surface color, used to cover axis labels while scrubbing.
+     public let background: UIColor
+ 
++    public var pastelInsulinTint: UIColor {
++        Self.pastelTint(light: (116, 67, 151), dark: (200, 162, 232), fallback: insulinTint)
++    }
++
++    public var pastelCarbTint: UIColor {
++        Self.pastelTint(light: (161, 55, 83), dark: (255, 182, 193), fallback: carbTint)
++    }
++
++    private static func pastelTint(light: (CGFloat, CGFloat, CGFloat), dark: (CGFloat, CGFloat, CGFloat), fallback: UIColor) -> UIColor {
++        UIColor { traits in
++            if traits.accessibilityContrast == .high {
++                return fallback.resolvedColor(with: traits)
++            }
++            let (red, green, blue) = traits.userInterfaceStyle == .dark ? dark : light
++            return UIColor(red: red / 255, green: green / 255, blue: blue / 255, alpha: 1)
++        }
++    }
++
+     public init(axisLine: UIColor, axisLabel: UIColor, grid: UIColor, presetTint: UIColor, glucoseTint: UIColor, insulinTint: UIColor, carbTint: UIColor, background: UIColor = .systemBackground) {
+         self.axisLine = axisLine
+         self.axisLabel = axisLabel
+diff --git a/LoopKitUI/Charts/COBChart.swift b/LoopKitUI/Charts/COBChart.swift
+index 7511011..ed54ece 100644
+--- a/LoopKitUI/Charts/COBChart.swift
++++ b/LoopKitUI/Charts/COBChart.swift
+@@ -53,10 +53,11 @@ public extension COBChart {
+         let (xAxisLayer, yAxisLayer, innerFrame) = (coordsSpace.xAxisLayer, coordsSpace.yAxisLayer, coordsSpace.chartInnerFrame)
+ 
+         // The COB area
+-        let lineModel = ChartLineModel(chartPoints: cobPoints, lineColor: colors.carbTint, lineWidth: 2, animDuration: 0, animDelay: 0)
++        let seriesTint = colors.pastelCarbTint.resolvedColor(with: traitCollection)
++        let lineModel = ChartLineModel(chartPoints: cobPoints, lineColor: seriesTint, lineWidth: 2, animDuration: 0, animDelay: 0)
+         let cobLine = ChartPointsLineLayer(xAxis: xAxisLayer.axis, yAxis: yAxisLayer.axis, lineModels: [lineModel])
+ 
+-        let cobArea = ChartPointsFillsLayer(xAxis: xAxisLayer.axis, yAxis: yAxisLayer.axis, fills: [ChartPointsFill(chartPoints: cobPoints, fillColor: colors.carbTint.withAlphaComponent(0.5))])
++        let cobArea = ChartPointsFillsLayer(xAxis: xAxisLayer.axis, yAxis: yAxisLayer.axis, fills: [ChartPointsFill(chartPoints: cobPoints, fillColor: seriesTint.withAlphaComponent(0.5))])
+ 
+         // Grid lines
+         let gridLayer = ChartGuideLinesForValuesLayer(xAxis: xAxisLayer.axis, yAxis: yAxisLayer.axis, settings: guideLinesLayerSettings, axisValuesX: Array(xAxisValues.dropFirst().dropLast()), axisValuesY: yAxisValues)
+diff --git a/LoopKitUI/Charts/CarbEffectChart.swift b/LoopKitUI/Charts/CarbEffectChart.swift
+index 12f3582..7503546 100644
+--- a/LoopKitUI/Charts/CarbEffectChart.swift
++++ b/LoopKitUI/Charts/CarbEffectChart.swift
+@@ -85,13 +85,15 @@ extension CarbEffectChart {
+             carbBlendMode = .plusDarker
+         }
+ 
++        let observedFillColor = colors.pastelCarbTint.resolvedColor(with: traitCollection).withAlphaComponent(0.5)
++
+         // Carb effect
+         let effectsLayer = ChartPointsFillsLayer(
+             xAxis: xAxisLayer.axis,
+             yAxis: yAxisLayer.axis,
+             fills: [
+                 ChartPointsFill(chartPoints: carbEffectPoints, fillColor: UIColor.secondaryLabel.withAlphaComponent(0.5)),
+-                ChartPointsFill(chartPoints: insulinCounteractionEffectPoints, fillColor: carbFillColor, blendMode: carbBlendMode)
++                ChartPointsFill(chartPoints: insulinCounteractionEffectPoints, fillColor: observedFillColor, blendMode: carbBlendMode)
+             ]
+         )
+ 
+diff --git a/LoopKitUI/Charts/IOBChart.swift b/LoopKitUI/Charts/IOBChart.swift
+index 84f5cf4..ae029e8 100644
+--- a/LoopKitUI/Charts/IOBChart.swift
++++ b/LoopKitUI/Charts/IOBChart.swift
+@@ -57,10 +57,11 @@ public extension IOBChart {
+         let (xAxisLayer, yAxisLayer, innerFrame) = (coordsSpace.xAxisLayer, coordsSpace.yAxisLayer, coordsSpace.chartInnerFrame)
+ 
+         // The IOB area
+-        let lineModel = ChartLineModel(chartPoints: iobPoints, lineColor: colors.insulinTint, lineWidth: 2, animDuration: 0, animDelay: 0)
++        let seriesTint = colors.pastelInsulinTint.resolvedColor(with: traitCollection)
++        let lineModel = ChartLineModel(chartPoints: iobPoints, lineColor: seriesTint, lineWidth: 2, animDuration: 0, animDelay: 0)
+         let iobLine = ChartPointsLineLayer(xAxis: xAxisLayer.axis, yAxis: yAxisLayer.axis, lineModels: [lineModel])
+ 
+-        let iobArea = ChartPointsFillsLayer(xAxis: xAxisLayer.axis, yAxis: yAxisLayer.axis, fills: [ChartPointsFill(chartPoints: iobPoints, fillColor: colors.insulinTint.withAlphaComponent(0.5))])
++        let iobArea = ChartPointsFillsLayer(xAxis: xAxisLayer.axis, yAxis: yAxisLayer.axis, fills: [ChartPointsFill(chartPoints: iobPoints, fillColor: seriesTint.withAlphaComponent(0.5))])
+ 
+         // Grid lines
+         let gridLayer = ChartGuideLinesForValuesLayer(xAxis: xAxisLayer.axis, yAxis: yAxisLayer.axis, settings: guideLinesLayerSettings, axisValuesX: Array(xAxisValues.dropFirst().dropLast()), axisValuesY: yAxisValues)
+diff --git a/LoopKitUI/Charts/LegacyDoseChart.swift b/LoopKitUI/Charts/LegacyDoseChart.swift
+index 47ff4f8..648c8bd 100644
+--- a/LoopKitUI/Charts/LegacyDoseChart.swift
++++ b/LoopKitUI/Charts/LegacyDoseChart.swift
+@@ -102,7 +102,8 @@ public extension LegacyDoseChart {
+         let (xAxisLayer, yAxisLayer, innerFrame) = (coordsSpace.xAxisLayer, coordsSpace.yAxisLayer, coordsSpace.chartInnerFrame)
+ 
+         // The dose area
+-        let lineModel = ChartLineModel(chartPoints: points.basal, lineColor: colors.insulinTint, lineWidth: 2, animDuration: 0, animDelay: 0)
++        let seriesTint = colors.pastelInsulinTint.resolvedColor(with: traitCollection)
++        let lineModel = ChartLineModel(chartPoints: points.basal, lineColor: seriesTint, lineWidth: 2, animDuration: 0, animDelay: 0)
+         let doseLine = ChartPointsLineLayer(xAxis: xAxisLayer.axis, yAxis: yAxisLayer.axis, lineModels: [lineModel])
+ 
+         let doseArea = ChartPointsFillsLayer(
+@@ -110,7 +111,7 @@ public extension LegacyDoseChart {
+             yAxis: yAxisLayer.axis,
+             fills: [ChartPointsFill(
+                 chartPoints: points.basalFill,
+-                fillColor: colors.insulinTint.withAlphaComponent(0.5),
++                fillColor: seriesTint.withAlphaComponent(0.5),
+                 createContainerPoints: false
+             )]
+         )
