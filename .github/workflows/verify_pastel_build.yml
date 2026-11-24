@@ -9,16 +9,23 @@ permissions:
 
 jobs:
   simulator:
+    name: Simulator (${{ matrix.variant }})
     runs-on: xcode-27
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [baseline, patched]
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v5
         with:
+          ref: ${{ matrix.variant == 'baseline' && github.event.pull_request.base.sha || github.sha }}
           submodules: recursive
           persist-credentials: false
       - name: Select Xcode
         run: sudo xcode-select --switch /Applications/Xcode_27.1.app/Contents/Developer
       - name: Apply cosmetic patches
+        if: matrix.variant == 'patched'
         run: bash Scripts/apply_pastel_patches.sh
       - name: Compile for iOS Simulator
         run: |
@@ -27,7 +34,7 @@ jobs:
             -scheme LoopWorkspace \
             -destination 'platform=iOS Simulator,name=iPhone 17' \
             -resultBundlePath build.xcresult \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGN_IDENTITY=-
       - name: Run iOS Simulator tests
         run: |
           xcodebuild -quiet test-without-building \
@@ -36,7 +43,7 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 17' \
             -collect-test-diagnostics never \
             -resultBundlePath tests.xcresult \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGN_IDENTITY=-
       - name: Summarize Xcode results
         if: always()
         run: |
