@@ -20,11 +20,29 @@ jobs:
         run: sudo xcode-select --switch /Applications/Xcode_27.1.app/Contents/Developer
       - name: Apply cosmetic patches
         run: bash Scripts/apply_pastel_patches.sh
-      - name: Build and test in iOS Simulator
+      - name: Compile for iOS Simulator
         run: |
-          xcodebuild test \
+          xcodebuild -quiet build-for-testing \
+            -workspace LoopWorkspace.xcworkspace \
+            -scheme LoopWorkspace \
+            -destination 'platform=iOS Simulator,name=iPhone 17' \
+            -resultBundlePath build.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Run iOS Simulator tests
+        run: |
+          xcodebuild -quiet test-without-building \
             -workspace LoopWorkspace.xcworkspace \
             -scheme LoopWorkspace \
             -destination 'platform=iOS Simulator,name=iPhone 17' \
             -collect-test-diagnostics never \
+            -resultBundlePath tests.xcresult \
             CODE_SIGNING_ALLOWED=NO
+      - name: Summarize Xcode results
+        if: always()
+        run: |
+          if [[ -d build.xcresult ]]; then
+            xcrun xcresulttool get build-results --path build.xcresult || true
+          fi
+          if [[ -d tests.xcresult ]]; then
+            xcrun xcresulttool get test-results summary --path tests.xcresult || true
+          fi
