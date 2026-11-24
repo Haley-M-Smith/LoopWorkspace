@@ -10,6 +10,9 @@ jobs:
           name: Checkout submodules
           command: git submodule update --init --recursive --depth 1
       - run:
+          name: Apply pastel patches
+          command: bash Scripts/apply_pastel_patches.sh
+      - run:
           name: Install xcbeautify
           command: brew list xcbeautify >/dev/null 2>&1 || brew install xcbeautify
       - run:
